@@ -1,0 +1,91 @@
+<!-- ===== NAVIGATION BAR ===== -->
+<nav class="bg-forest-dark text-white shadow-lg sticky top-0 z-50" role="navigation" aria-label="Main Navigation">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Logo & Mobile Toggle -->
+    <div class="flex items-center justify-between h-20">
+      <a href="/" class="flex items-center gap-3 text-white no-underline hover:opacity-90 transition-opacity" aria-label="Bantay Pananim Home">
+        <span class="text-3xl">🌾</span>
+        <span class="text-xl sm:text-2xl font-bold tracking-tight">Bantay Pananim</span>
+      </a>
+
+      <!-- Mobile menu button -->
+      <button id="nav-toggle" class="lg:hidden flex items-center justify-center w-14 h-14 rounded-lg bg-forest hover:bg-green-700 transition-colors focus:outline-none focus:ring-4 focus:ring-yellow-400" aria-expanded="false" aria-controls="nav-menu" aria-label="Open menu">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Nav Links -->
+    <div id="nav-menu" class="hidden lg:block pb-4 lg:pb-0 lg:-mt-4">
+      <ul class="flex flex-col lg:flex-row gap-2 lg:gap-1 list-none p-0 m-0">
+
+        <li>
+          <a href="/"
+             class="nav-link flex items-center gap-3 px-5 py-3 rounded-lg text-lg font-semibold transition-colors
+                    <%= currentPath === '/' ? 'bg-harvest text-charcoal' : 'text-white hover:bg-forest' %>"
+             aria-current="<%= currentPath === '/' ? 'page' : 'false' %>">
+            <span class="text-2xl" aria-hidden="true">📊</span>
+            <span>Dashboard</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="/storage-rooms"
+             class="nav-link flex items-center gap-3 px-5 py-3 rounded-lg text-lg font-semibold transition-colors
+                    <%= currentPath === '/storage-rooms' ? 'bg-harvest text-charcoal' : 'text-white hover:bg-forest' %>"
+             aria-current="<%= currentPath === '/storage-rooms' ? 'page' : 'false' %>">
+            <span class="text-2xl" aria-hidden="true">🏪</span>
+            <span>Storage Rooms</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="/batches"
+             class="nav-link flex items-center gap-3 px-5 py-3 rounded-lg text-lg font-semibold transition-colors
+                    <%= currentPath === '/batches' ? 'bg-harvest text-charcoal' : 'text-white hover:bg-forest' %>"
+             aria-current="<%= currentPath === '/batches' ? 'page' : 'false' %>">
+            <span class="text-2xl" aria-hidden="true">📦</span>
+            <span>Crop Batches</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="/batches/new"
+             class="nav-link flex items-center gap-3 px-5 py-3 rounded-lg text-lg font-semibold transition-colors
+                    <%= currentPath === '/batches/new' ? 'bg-harvest text-charcoal' : 'text-white hover:bg-forest' %>"
+             aria-current="<%= currentPath === '/batches/new' ? 'page' : 'false' %>">
+            <span class="text-2xl" aria-hidden="true">➕</span>
+            <span>Register Harvest</span>
+          </a>
+        </li>
+
+        <li>
+          <a href="/dispatch"
+             class="nav-link flex items-center gap-3 px-5 py-3 rounded-lg text-lg font-semibold transition-colors
+                    <%= currentPath.startsWith('/dispatch') ? 'bg-harvest text-charcoal' : 'text-white hover:bg-forest' %>"
+             aria-current="<%= currentPath.startsWith('/dispatch') ? 'page' : 'false' %>">
+            <span class="text-2xl" aria-hidden="true">🚚</span>
+            <span>Sell / Dispatch</span>
+          </a>
+        </li>
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile nav toggle script -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const toggle = document.getElementById('nav-toggle');
+    const menu = document.getElementById('nav-menu');
+    if (toggle && menu) {
+      toggle.addEventListener('click', function() {
+        const isOpen = !menu.classList.contains('hidden');
+        menu.classList.toggle('hidden');
+        toggle.setAttribute('aria-expanded', !isOpen);
+      });
+    }
+  });
+</script>

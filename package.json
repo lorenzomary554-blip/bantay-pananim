@@ -1,0 +1,22 @@
+{
+  "name": "bantay-pananim",
+  "version": "1.0.0",
+  "description": "Bantay Pananim v1.0 — Grain & Produce Storage Batch Expiry Tracker for elder farmers and coop managers",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.7.0",
+    "connect-flash": "^0.1.1",
+    "ejs": "^3.1.10",
+    "express": "^4.21.0",
+    "express-session": "^1.18.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  },
+  "keywords": ["agriculture", "inventory", "expiry-tracker", "fifo", "grain-storage"],
+  "license": "MIT"
+}

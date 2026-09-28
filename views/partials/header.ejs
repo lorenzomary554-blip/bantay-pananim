@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Bantay Pananim v1.0 — Grain & Produce Storage Batch Expiry Tracker for farmers and coop managers">
+  <title><%= title %></title>
+
+  <!-- Tailwind CSS v3 CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cream: '#fdf6e3',
+            'cream-dark': '#f5eedb',
+            charcoal: '#1a1a2e',
+            'forest': '#2d6a4f',
+            'forest-dark': '#1b4332',
+            'harvest': '#e09f3e',
+            'harvest-dark': '#c77c14',
+            'danger': '#c1121f',
+            'danger-light': '#fef2f2',
+            'safe': '#40916c',
+            'safe-light': '#f0fdf4',
+            'warning-bg': '#fffbeb',
+            'priority-bg': '#fef2f2',
+          },
+          fontSize: {
+            'body': ['18px', '28px'],
+            'body-lg': ['20px', '30px'],
+            'label': ['20px', '28px'],
+            'heading': ['28px', '36px'],
+            'heading-lg': ['36px', '44px'],
+            'display': ['48px', '56px'],
+          },
+          spacing: {
+            '18': '4.5rem',
+            '22': '5.5rem',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- Google Fonts — Inter for readability -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Custom Elder-Friendly CSS -->
+  <link rel="stylesheet" href="/css/custom.css">
+</head>
+<body class="bg-cream text-charcoal font-['Inter'] text-body min-h-screen flex flex-col">
+
+  <!-- ===== NAVIGATION ===== -->
+  <%- include('navbar') %>
+
+  <!-- ===== FLASH MESSAGES ===== -->
+  <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 mt-4">
+    <%- include('flash-message') %>
+  </div>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">

@@ -1,0 +1,258 @@
+<%- include('partials/header') %>
+
+<!-- ===== PAGE HEADER ===== -->
+<div class="mb-8">
+  <h1 class="text-heading-lg font-extrabold text-charcoal flex items-center gap-3">
+    <span aria-hidden="true">🚚</span> Sell / Dispatch Crops
+  </h1>
+  <p class="text-body-lg text-gray-600 mt-2">Sell crops using the <strong>"Sell Oldest First"</strong> method to avoid spoilage. We recommend the oldest batch automatically.</p>
+</div>
+
+<!-- ===== CROP FILTER ===== -->
+<div class="bg-white rounded-2xl shadow-md border-2 border-gray-200 p-5 mb-6">
+  <h2 class="text-xl font-bold text-charcoal mb-3">🔍 Filter by Crop Type:</h2>
+  <div class="flex flex-wrap gap-3">
+    <a href="/dispatch"
+       class="px-5 py-3 rounded-xl text-lg font-bold no-underline border-2 transition-colors
+              <%= !cropFilter ? 'bg-charcoal text-white border-charcoal' : 'bg-white text-charcoal border-gray-300 hover:bg-gray-100' %>">
+      All Crops
+    </a>
+    <% crops.forEach(function(crop) { %>
+      <a href="/dispatch?crop_id=<%= crop.crop_id %>"
+         class="px-5 py-3 rounded-xl text-lg font-bold no-underline border-2 transition-colors
+                <%= String(cropFilter) === String(crop.crop_id) ? 'bg-forest text-white border-forest' : 'bg-green-50 text-green-800 border-green-300 hover:bg-green-100' %>">
+        <%= crop.crop_name %>
+      </a>
+    <% }); %>
+  </div>
+</div>
+
+<% if (batches.length === 0) { %>
+  <div class="bg-white rounded-2xl shadow-md border-2 border-gray-200 p-10 text-center">
+    <span class="text-6xl block mb-4" aria-hidden="true">📭</span>
+    <p class="text-heading font-bold text-gray-600">No Crops Available for Sale</p>
+    <p class="text-body text-gray-500 mt-2">
+      There are no crop batches ready for dispatch.
+      <a href="/batches/new" class="text-forest font-bold underline">Register a new harvest first</a>
+    </p>
+  </div>
+<% } else { %>
+
+  <!-- ===== FIFO RECOMMENDATION ===== -->
+  <% if (fifoRecommendation) { %>
+    <div class="bg-green-100 rounded-2xl shadow-lg border-4 border-green-500 p-6 mb-8">
+      <div class="flex items-start gap-4">
+        <span class="text-5xl flex-shrink-0" aria-hidden="true">🟢</span>
+        <div class="flex-1">
+          <h2 class="text-heading font-extrabold text-green-900 mb-2">
+            ✅ RECOMMENDED TO SELL FIRST (Sell Oldest First)
+          </h2>
+          <p class="text-body-lg text-green-800 mb-3">
+            This is the <strong>oldest batch</strong> and should be sold first to avoid spoilage:
+          </p>
+          <div class="bg-white rounded-xl p-5 border-2 border-green-400">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-body">
+              <div>
+                <span class="text-sm text-gray-500 font-semibold block">Crop</span>
+                <span class="text-xl font-extrabold text-charcoal"><%= fifoRecommendation.crop_name %></span>
+              </div>
+              <div>
+                <span class="text-sm text-gray-500 font-semibold block">Room</span>
+                <span class="text-xl font-bold"><%= fifoRecommendation.bay_code %></span>
+              </div>
+              <div>
+                <span class="text-sm text-gray-500 font-semibold block">Available</span>
+                <span class="text-xl font-extrabold text-forest"><%= fifoRecommendation.remaining_weight_kg.toLocaleString() %> kg</span>
+              </div>
+              <div>
+                <span class="text-sm text-gray-500 font-semibold block">Days Left</span>
+                <span class="text-xl font-extrabold
+                            <%= fifoRecommendation.days_until_expiry <= 7 ? 'text-danger' : fifoRecommendation.days_until_expiry <= 14 ? 'text-harvest-dark' : 'text-safe' %>">
+                  <% if (fifoRecommendation.days_until_expiry < 0) { %>
+                    ⚠️ EXPIRED!
+                  <% } else { %>
+                    <%= fifoRecommendation.days_until_expiry %> days
+                  <% } %>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- ===== DISPATCH FORM ===== -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+    <!-- Form -->
+    <div class="bg-white rounded-2xl shadow-md border-2 border-gray-200 p-6">
+      <h2 class="text-heading font-bold text-charcoal mb-6 flex items-center gap-2">
+        <span aria-hidden="true">📝</span> Record a Sale
+      </h2>
+
+      <form action="/dispatch" method="POST" id="dispatch-form" data-confirm="true">
+        <!-- Batch Selection -->
+        <div class="mb-6">
+          <label for="batch_id" class="block text-label font-semibold text-charcoal mb-2">
+            Which Batch to Sell? <span class="text-danger">*</span>
+          </label>
+          <select id="batch_id" name="batch_id" required class="elder-input w-full" onchange="updateDispatchInfo(this)">
+            <option value="">-- Choose a batch --</option>
+            <% batches.forEach(function(batch, index) { %>
+              <option value="<%= batch.batch_id %>"
+                      data-remaining="<%= batch.remaining_weight_kg %>"
+                      data-crop="<%= batch.crop_name %>"
+                      data-room="<%= batch.bay_code %>"
+                      data-is-fifo="<%= fifoRecommendation && batch.batch_id === fifoRecommendation.batch_id ? 'true' : 'false' %>"
+                      <%= fifoRecommendation && batch.batch_id === fifoRecommendation.batch_id ? 'selected' : '' %>>
+                <%= index === 0 ? '⭐ RECOMMENDED: ' : '' %><%= batch.crop_name %> — <%= batch.bay_code %> (<%= batch.remaining_weight_kg %> kg, <%= batch.days_until_expiry %> days left)
+              </option>
+            <% }); %>
+          </select>
+          <p class="text-sm text-gray-500 mt-2">💡 The recommended batch (oldest) is pre-selected.</p>
+        </div>
+
+        <!-- Quantity -->
+        <div class="mb-6">
+          <label for="quantity_dispatched_kg" class="block text-label font-semibold text-charcoal mb-2">
+            How Much to Sell (kg)? <span class="text-danger">*</span>
+          </label>
+          <input type="number" id="quantity_dispatched_kg" name="quantity_dispatched_kg"
+                 min="1" step="0.1" required
+                 placeholder="e.g. 500"
+                 class="elder-input w-full">
+          <p class="text-sm text-gray-500 mt-2" id="remaining-hint">💡 Enter the amount in kilograms to sell from this batch.</p>
+        </div>
+
+        <!-- Buyer Name -->
+        <div class="mb-6">
+          <label for="buyer_name" class="block text-label font-semibold text-charcoal mb-2">
+            Buyer Name (Optional)
+          </label>
+          <input type="text" id="buyer_name" name="buyer_name"
+                 placeholder="e.g. NFA, Juan Dela Cruz, Market Stall"
+                 class="elder-input w-full">
+          <p class="text-sm text-gray-500 mt-2">💡 Who is buying? This is optional but helps with record-keeping.</p>
+        </div>
+
+        <!-- Override Reason (shown if non-FIFO batch selected) -->
+        <div id="override-section" class="hidden mb-6">
+          <div class="bg-yellow-50 border-2 border-yellow-400 rounded-xl p-4 mb-3">
+            <p class="text-lg font-bold text-yellow-800">
+              ⚠️ You are NOT selling the oldest batch. Please provide a reason:
+            </p>
+          </div>
+          <label for="override_reason" class="block text-label font-semibold text-charcoal mb-2">
+            Reason for Skipping Oldest Batch
+          </label>
+          <textarea id="override_reason" name="override_reason" rows="3"
+                    placeholder="e.g. Buyer specifically requested newer batch, quality issue with oldest batch"
+                    class="elder-input w-full"></textarea>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="btn-primary w-full text-xl py-5 px-6 rounded-xl font-bold flex items-center justify-center gap-3">
+          <span aria-hidden="true">✅</span> Confirm Sale
+        </button>
+      </form>
+    </div>
+
+    <!-- Available Batches List -->
+    <div class="bg-white rounded-2xl shadow-md border-2 border-gray-200 p-6">
+      <h2 class="text-heading font-bold text-charcoal mb-4 flex items-center gap-2">
+        <span aria-hidden="true">📋</span> Available Batches (Oldest First)
+      </h2>
+      <div class="space-y-3">
+        <% batches.forEach(function(batch, index) { %>
+          <%
+            let itemBg, itemBorder;
+            if (index === 0) {
+              itemBg = 'bg-green-50'; itemBorder = 'border-green-400';
+            } else if (batch.status === 'Priority') {
+              itemBg = 'bg-red-50'; itemBorder = 'border-red-300';
+            } else if (batch.status === 'Warning') {
+              itemBg = 'bg-yellow-50'; itemBorder = 'border-yellow-300';
+            } else {
+              itemBg = 'bg-white'; itemBorder = 'border-gray-200';
+            }
+          %>
+          <div class="<%= itemBg %> rounded-xl p-4 border-2 <%= itemBorder %>
+                      <%= index === 0 ? 'ring-2 ring-green-500 ring-offset-2' : '' %>">
+            <div class="flex items-center justify-between gap-4 flex-wrap">
+              <div>
+                <% if (index === 0) { %>
+                  <span class="inline-block bg-green-600 text-white text-sm font-bold px-3 py-1 rounded-lg mb-2">
+                    ⭐ SELL THIS FIRST
+                  </span>
+                <% } %>
+                <p class="text-lg font-bold text-charcoal"><%= batch.crop_name %> — <%= batch.bay_code %></p>
+                <p class="text-body text-gray-600">Received: <%= batch.date_received %></p>
+              </div>
+              <div class="text-right">
+                <p class="text-xl font-extrabold text-charcoal"><%= batch.remaining_weight_kg.toLocaleString() %> kg</p>
+                <p class="text-base font-bold
+                          <%= batch.days_until_expiry <= 7 ? 'text-danger' : batch.days_until_expiry <= 14 ? 'text-harvest-dark' : 'text-safe' %>">
+                  <% if (batch.days_until_expiry < 0) { %>
+                    ⚠️ EXPIRED!
+                  <% } else { %>
+                    <%= batch.days_until_expiry %> day(s) left
+                  <% } %>
+                </p>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Sale History Link -->
+  <div class="mt-8 text-center">
+    <a href="/dispatch/history" class="btn-secondary text-xl py-4 px-8 rounded-xl font-bold no-underline inline-flex items-center gap-3">
+      <span aria-hidden="true">📜</span> View Sale History
+    </a>
+  </div>
+
+<% } %>
+
+<script>
+  function updateDispatchInfo(select) {
+    const option = select.options[select.selectedIndex];
+    const remaining = option.dataset.remaining;
+    const isFifo = option.dataset.isFifo;
+    const crop = option.dataset.crop;
+    const room = option.dataset.room;
+
+    // Update remaining hint
+    const hint = document.getElementById('remaining-hint');
+    if (remaining) {
+      hint.innerHTML = '💡 Maximum you can sell: <strong>' + parseFloat(remaining).toLocaleString() + ' kg</strong> of ' + crop + ' from ' + room;
+    }
+
+    // Show/hide override section
+    const overrideSection = document.getElementById('override-section');
+    if (isFifo === 'false' && select.value) {
+      overrideSection.classList.remove('hidden');
+    } else {
+      overrideSection.classList.add('hidden');
+    }
+
+    // Update confirm message
+    const form = document.getElementById('dispatch-form');
+    if (crop && room) {
+      form.dataset.confirmMessage = 'Sell crops from batch: ' + crop + ' in ' + room + '?';
+    }
+  }
+
+  // Initialize on page load if batch is pre-selected
+  document.addEventListener('DOMContentLoaded', function() {
+    const select = document.getElementById('batch_id');
+    if (select && select.value) {
+      updateDispatchInfo(select);
+    }
+  });
+</script>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,26 @@
+<!-- ===== FLASH MESSAGES ===== -->
+<% if (success && success.length > 0) { %>
+  <% success.forEach(function(msg) { %>
+    <div class="flash-message bg-safe-light border-2 border-safe rounded-xl p-5 mb-4 flex items-start gap-4" role="alert">
+      <span class="text-3xl flex-shrink-0" aria-hidden="true">✅</span>
+      <div>
+        <p class="text-lg font-bold text-forest-dark">Success!</p>
+        <p class="text-body text-charcoal mt-1"><%= msg %></p>
+      </div>
+      <button onclick="this.closest('.flash-message').remove()" class="ml-auto text-2xl font-bold text-gray-500 hover:text-gray-800 p-2 flex-shrink-0" aria-label="Close message">&times;</button>
+    </div>
+  <% }); %>
+<% } %>
+
+<% if (error && error.length > 0) { %>
+  <% error.forEach(function(msg) { %>
+    <div class="flash-message bg-danger-light border-2 border-danger rounded-xl p-5 mb-4 flex items-start gap-4" role="alert">
+      <span class="text-3xl flex-shrink-0" aria-hidden="true">⚠️</span>
+      <div>
+        <p class="text-lg font-bold text-danger">Something Went Wrong</p>
+        <p class="text-body text-charcoal mt-1"><%= msg %></p>
+      </div>
+      <button onclick="this.closest('.flash-message').remove()" class="ml-auto text-2xl font-bold text-gray-500 hover:text-gray-800 p-2 flex-shrink-0" aria-label="Close message">&times;</button>
+    </div>
+  <% }); %>
+<% } %>

@@ -1,0 +1,169 @@
+<%- include('partials/header') %>
+
+<!-- ===== PAGE HEADER ===== -->
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+  <div>
+    <h1 class="text-heading-lg font-extrabold text-charcoal flex items-center gap-3">
+      <span aria-hidden="true">📦</span> All Crop Batches
+    </h1>
+    <p class="text-body-lg text-gray-600 mt-2">View all stored crop batches and their current status.</p>
+  </div>
+  <a href="/batches/new" class="btn-primary text-xl py-4 px-6 rounded-xl font-bold no-underline flex items-center gap-2 flex-shrink-0">
+    <span aria-hidden="true">➕</span> Register New Harvest
+  </a>
+</div>
+
+<!-- ===== STATUS FILTER ===== -->
+<div class="bg-white rounded-2xl shadow-md border-2 border-gray-200 p-5 mb-6">
+  <h2 class="text-xl font-bold text-charcoal mb-3">🔍 Filter by Status:</h2>
+  <div class="flex flex-wrap gap-3">
+    <a href="/batches"
+       class="px-5 py-3 rounded-xl text-lg font-bold no-underline border-2 transition-colors
+              <%= statusFilter === 'all' ? 'bg-charcoal text-white border-charcoal' : 'bg-white text-charcoal border-gray-300 hover:bg-gray-100' %>">
+      All
+    </a>
+    <a href="/batches?status=Fresh"
+       class="px-5 py-3 rounded-xl text-lg font-bold no-underline border-2 transition-colors
+              <%= statusFilter === 'Fresh' ? 'bg-green-700 text-white border-green-700' : 'bg-green-50 text-green-800 border-green-300 hover:bg-green-100' %>">
+      ✅ Fresh
+    </a>
+    <a href="/batches?status=Warning"
+       class="px-5 py-3 rounded-xl text-lg font-bold no-underline border-2 transition-colors
+              <%= statusFilter === 'Warning' ? 'bg-yellow-600 text-white border-yellow-600' : 'bg-yellow-50 text-yellow-800 border-yellow-300 hover:bg-yellow-100' %>">
+      ⏰ Warning
+    </a>
+    <a href="/batches?status=Priority"
+       class="px-5 py-3 rounded-xl text-lg font-bold no-underline border-2 transition-colors
+              <%= statusFilter === 'Priority' ? 'bg-red-700 text-white border-red-700' : 'bg-red-50 text-red-800 border-red-300 hover:bg-red-100' %>">
+      ⚠️ Priority
+    </a>
+    <a href="/batches?status=Fulfilled"
+       class="px-5 py-3 rounded-xl text-lg font-bold no-underline border-2 transition-colors
+              <%= statusFilter === 'Fulfilled' ? 'bg-blue-700 text-white border-blue-700' : 'bg-blue-50 text-blue-800 border-blue-300 hover:bg-blue-100' %>">
+      ✔️ Fulfilled
+    </a>
+    <a href="/batches?status=Spoiled"
+       class="px-5 py-3 rounded-xl text-lg font-bold no-underline border-2 transition-colors
+              <%= statusFilter === 'Spoiled' ? 'bg-gray-700 text-white border-gray-700' : 'bg-gray-100 text-gray-700 border-gray-400 hover:bg-gray-200' %>">
+      🔴 Spoiled
+    </a>
+  </div>
+</div>
+
+<!-- ===== BATCH LIST ===== -->
+<% if (batches.length === 0) { %>
+  <div class="bg-white rounded-2xl shadow-md border-2 border-gray-200 p-10 text-center">
+    <span class="text-6xl block mb-4" aria-hidden="true">📭</span>
+    <p class="text-heading font-bold text-gray-600">No Batches Found</p>
+    <p class="text-body text-gray-500 mt-2">
+      <% if (statusFilter !== 'all') { %>
+        No batches with status "<%= statusFilter %>".
+        <a href="/batches" class="text-forest font-bold underline">View all batches</a>
+      <% } else { %>
+        No crops have been registered yet.
+        <a href="/batches/new" class="text-forest font-bold underline">Register your first harvest</a>
+      <% } %>
+    </p>
+  </div>
+<% } else { %>
+  <div class="space-y-4">
+    <% batches.forEach(function(batch) { %>
+      <%
+        let rowBg, rowBorder, statusBadgeClass, statusIcon, statusText;
+
+        if (batch.status === 'Fresh') {
+          rowBg = 'bg-green-50'; rowBorder = 'border-green-300';
+          statusBadgeClass = 'bg-green-200 text-green-900 border-green-400';
+          statusIcon = '✅'; statusText = 'SAFE';
+        } else if (batch.status === 'Warning') {
+          rowBg = 'bg-yellow-50'; rowBorder = 'border-yellow-300';
+          statusBadgeClass = 'bg-yellow-200 text-yellow-900 border-yellow-500';
+          statusIcon = '⏰'; statusText = 'SELL SOON';
+        } else if (batch.status === 'Priority') {
+          rowBg = 'bg-red-50'; rowBorder = 'border-red-300';
+          statusBadgeClass = 'bg-red-200 text-red-900 border-red-500';
+          statusIcon = '⚠️'; statusText = 'URGENT — SELL NOW!';
+        } else if (batch.status === 'Fulfilled') {
+          rowBg = 'bg-blue-50'; rowBorder = 'border-blue-200';
+          statusBadgeClass = 'bg-blue-200 text-blue-800 border-blue-400';
+          statusIcon = '✔️'; statusText = 'FULLY SOLD';
+        } else {
+          rowBg = 'bg-gray-100'; rowBorder = 'border-gray-400';
+          statusBadgeClass = 'bg-gray-300 text-gray-800 border-gray-500';
+          statusIcon = '🔴'; statusText = 'SPOILED';
+        }
+      %>
+
+      <div class="<%= rowBg %> rounded-2xl shadow-sm border-2 <%= rowBorder %> p-5">
+        <div class="flex flex-col lg:flex-row items-start lg:items-center gap-4">
+
+          <!-- Crop & Room Info -->
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-3 mb-2 flex-wrap">
+              <h3 class="text-xl font-extrabold text-charcoal"><%= batch.crop_name %></h3>
+              <span class="inline-flex items-center gap-1 px-3 py-1 rounded-lg border-2 text-base font-extrabold <%= statusBadgeClass %>">
+                <span aria-hidden="true"><%= statusIcon %></span> <%= statusText %>
+              </span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-2 text-body">
+              <div>
+                <span class="text-sm text-gray-500 font-semibold block">Room</span>
+                <span class="font-bold"><%= batch.bay_code %></span>
+              </div>
+              <div>
+                <span class="text-sm text-gray-500 font-semibold block">Weight</span>
+                <span class="font-bold"><%= batch.remaining_weight_kg.toLocaleString() %> / <%= batch.initial_weight_kg.toLocaleString() %> kg</span>
+              </div>
+              <div>
+                <span class="text-sm text-gray-500 font-semibold block">Moisture</span>
+                <span class="font-bold"><%= batch.moisture_content %>%</span>
+              </div>
+              <div>
+                <span class="text-sm text-gray-500 font-semibold block">Received</span>
+                <span class="font-bold"><%= batch.date_received %></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Expiry & Actions -->
+          <div class="flex items-center gap-4 flex-shrink-0">
+            <div class="text-right">
+              <p class="text-sm text-gray-500 font-semibold">Expiry Date</p>
+              <p class="text-lg font-extrabold text-charcoal"><%= batch.estimated_expiry_date %></p>
+              <% if (batch.status !== 'Fulfilled' && batch.status !== 'Spoiled') { %>
+                <p class="text-base font-bold
+                          <%= batch.days_until_expiry <= 7 ? 'text-danger' : batch.days_until_expiry <= 14 ? 'text-harvest-dark' : 'text-safe' %>">
+                  <% if (batch.days_until_expiry < 0) { %>
+                    ⚠️ EXPIRED!
+                  <% } else if (batch.days_until_expiry === 0) { %>
+                    ⚠️ EXPIRES TODAY!
+                  <% } else { %>
+                    <%= batch.days_until_expiry %> day(s) left
+                  <% } %>
+                </p>
+              <% } %>
+            </div>
+
+            <% if (batch.status !== 'Fulfilled' && batch.status !== 'Spoiled') { %>
+              <div class="flex flex-col gap-2">
+                <a href="/dispatch?crop_id=<%= batch.crop_id %>"
+                   class="btn-dispatch px-4 py-2 rounded-lg text-base font-bold no-underline text-center">
+                  🚚 Sell
+                </a>
+                <form action="/batches/<%= batch.batch_id %>/spoiled" method="POST"
+                      data-confirm="true"
+                      data-confirm-message="Mark this batch of <%= batch.crop_name %> (<%= batch.remaining_weight_kg %> kg in <%= batch.bay_code %>) as SPOILED? This cannot be undone.">
+                  <button type="submit" class="btn-danger-outline px-4 py-2 rounded-lg text-base font-bold w-full">
+                    🔴 Spoiled
+                  </button>
+                </form>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    <% }); %>
+  </div>
+<% } %>
+
+<%- include('partials/footer') %>

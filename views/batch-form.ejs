@@ -1,0 +1,157 @@
+<%- include('partials/header') %>
+
+<!-- ===== PAGE HEADER ===== -->
+<div class="mb-8">
+  <h1 class="text-heading-lg font-extrabold text-charcoal flex items-center gap-3">
+    <span aria-hidden="true">➕</span> Register New Crop Harvest
+  </h1>
+  <p class="text-body-lg text-gray-600 mt-2">Follow the steps below to record a new batch of crops into your storage.</p>
+</div>
+
+<!-- ===== GUIDED FORM ===== -->
+<form action="/batches" method="POST" class="max-w-3xl" id="harvest-form" data-confirm="true" data-confirm-message="Register this new crop harvest batch?">
+
+  <!-- STEP 1: Choose Crop Type -->
+  <div class="bg-white rounded-2xl shadow-md border-2 border-gray-200 p-6 mb-6">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-forest text-white text-xl font-bold" aria-hidden="true">1</span>
+      <h2 class="text-heading font-bold text-charcoal">What Type of Crop?</h2>
+    </div>
+
+    <label for="crop_id" class="block text-label font-semibold text-charcoal mb-2">Crop Type <span class="text-danger">*</span></label>
+    <select id="crop_id" name="crop_id" required
+            class="elder-input w-full" onchange="updateCropInfo(this.value)">
+      <option value="">-- Choose a crop --</option>
+      <% crops.forEach(function(crop) { %>
+        <option value="<%= crop.crop_id %>"
+                data-shelf-life="<%= crop.standard_shelf_life_days %>"
+                data-max-moisture="<%= crop.max_safe_moisture_percentage %>">
+          <%= crop.crop_name %>
+        </option>
+      <% }); %>
+    </select>
+    <p class="text-sm text-gray-500 mt-2 leading-relaxed">
+      💡 <strong>Help:</strong> Pick the type of crop you harvested (e.g., Rice, Corn, Mungbean).
+    </p>
+
+    <!-- Crop info display -->
+    <div id="crop-info" class="hidden mt-4 bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+      <p class="text-lg text-blue-800">
+        📋 <strong>Crop Info:</strong>
+        Shelf Life: <strong id="info-shelf-life">--</strong> days |
+        Max Safe Moisture: <strong id="info-max-moisture">--</strong>%
+      </p>
+    </div>
+  </div>
+
+  <!-- STEP 2: Choose Storage Room -->
+  <div class="bg-white rounded-2xl shadow-md border-2 border-gray-200 p-6 mb-6">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-forest text-white text-xl font-bold" aria-hidden="true">2</span>
+      <h2 class="text-heading font-bold text-charcoal">Where Will You Store It?</h2>
+    </div>
+
+    <label for="bay_id" class="block text-label font-semibold text-charcoal mb-2">Storage Room <span class="text-danger">*</span></label>
+    <select id="bay_id" name="bay_id" required class="elder-input w-full">
+      <option value="">-- Choose a storage room --</option>
+      <% bays.forEach(function(bay) { %>
+        <option value="<%= bay.bay_id %>">
+          <%= bay.bay_code %> (Capacity: <%= bay.capacity_kg.toLocaleString() %> kg — <%= bay.status %>)
+        </option>
+      <% }); %>
+    </select>
+    <p class="text-sm text-gray-500 mt-2 leading-relaxed">
+      💡 <strong>Help:</strong> Choose which room or bay to store the crop in. Rooms marked "Maintenance" are not shown.
+    </p>
+  </div>
+
+  <!-- STEP 3: Weight -->
+  <div class="bg-white rounded-2xl shadow-md border-2 border-gray-200 p-6 mb-6">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-forest text-white text-xl font-bold" aria-hidden="true">3</span>
+      <h2 class="text-heading font-bold text-charcoal">How Much Does It Weigh?</h2>
+    </div>
+
+    <label for="initial_weight_kg" class="block text-label font-semibold text-charcoal mb-2">Weight in Kilograms (kg) <span class="text-danger">*</span></label>
+    <input type="number" id="initial_weight_kg" name="initial_weight_kg"
+           min="1" step="0.1" required
+           placeholder="e.g. 1500"
+           class="elder-input w-full">
+    <p class="text-sm text-gray-500 mt-2 leading-relaxed">
+      💡 <strong>Help:</strong> Enter the total weight of the harvest in kilograms. For example, 50 sacks × 50 kg = 2500 kg.
+    </p>
+  </div>
+
+  <!-- STEP 4: Moisture Content -->
+  <div class="bg-white rounded-2xl shadow-md border-2 border-gray-200 p-6 mb-6">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-forest text-white text-xl font-bold" aria-hidden="true">4</span>
+      <h2 class="text-heading font-bold text-charcoal">What Is the Moisture Level?</h2>
+    </div>
+
+    <label for="moisture_content" class="block text-label font-semibold text-charcoal mb-2">Moisture Percentage (%) <span class="text-danger">*</span></label>
+    <input type="number" id="moisture_content" name="moisture_content"
+           min="0" max="100" step="0.1" required
+           placeholder="e.g. 13.5"
+           class="elder-input w-full"
+           onchange="calculateExpiryPreview()" oninput="calculateExpiryPreview()">
+    <p class="text-sm text-gray-500 mt-2 leading-relaxed">
+      💡 <strong>Help:</strong> Enter the moisture percentage from your handheld moisture meter. Lower moisture means longer storage life.
+    </p>
+
+    <!-- Moisture warning -->
+    <div id="moisture-warning" class="hidden mt-4 bg-red-50 border-2 border-red-300 rounded-xl p-4">
+      <p class="text-lg text-danger font-bold">
+        ⚠️ <strong>WARNING:</strong> Moisture is above the safe limit! The shelf life will be significantly shorter.
+      </p>
+    </div>
+  </div>
+
+  <!-- STEP 5: Date Received -->
+  <div class="bg-white rounded-2xl shadow-md border-2 border-gray-200 p-6 mb-6">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-forest text-white text-xl font-bold" aria-hidden="true">5</span>
+      <h2 class="text-heading font-bold text-charcoal">When Was It Received?</h2>
+    </div>
+
+    <label for="date_received" class="block text-label font-semibold text-charcoal mb-2">Date Received <span class="text-danger">*</span></label>
+    <input type="date" id="date_received" name="date_received"
+           required
+           class="elder-input w-full"
+           onchange="calculateExpiryPreview()">
+    <p class="text-sm text-gray-500 mt-2 leading-relaxed">
+      💡 <strong>Help:</strong> Pick the date when this crop arrived at the storage. Today's date is the default.
+    </p>
+  </div>
+
+  <!-- EXPIRY PREVIEW -->
+  <div id="expiry-preview" class="hidden bg-blue-50 rounded-2xl shadow-md border-2 border-blue-300 p-6 mb-6">
+    <h3 class="text-heading font-bold text-blue-800 flex items-center gap-2">
+      <span aria-hidden="true">📅</span> Estimated Expiry Date
+    </h3>
+    <p class="text-display font-extrabold text-blue-900 mt-2" id="expiry-date-text">--</p>
+    <p class="text-body text-blue-700 mt-1">Approximately <strong id="expiry-days-text">--</strong> days from the receive date</p>
+  </div>
+
+  <!-- SUBMIT -->
+  <div class="flex flex-col sm:flex-row gap-4">
+    <button type="submit" class="btn-primary text-xl py-5 px-8 rounded-xl font-bold flex-1 flex items-center justify-center gap-3">
+      <span aria-hidden="true">✅</span> Register This Harvest
+    </button>
+    <a href="/batches" class="btn-secondary text-xl py-5 px-8 rounded-xl font-bold flex-1 text-center no-underline flex items-center justify-center gap-3">
+      <span aria-hidden="true">✖</span> Cancel
+    </a>
+  </div>
+</form>
+
+<script>
+  // Set default date to today
+  document.addEventListener('DOMContentLoaded', function() {
+    const dateInput = document.getElementById('date_received');
+    if (dateInput && !dateInput.value) {
+      dateInput.value = new Date().toISOString().split('T')[0];
+    }
+  });
+</script>
+
+<%- include('partials/footer') %>

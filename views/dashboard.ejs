@@ -1,0 +1,141 @@
+<%- include('partials/header') %>
+
+<!-- ===== PAGE HEADER ===== -->
+<div class="mb-8">
+  <h1 class="text-heading-lg font-extrabold text-charcoal flex items-center gap-3">
+    <span aria-hidden="true">📊</span> Dashboard
+  </h1>
+  <p class="text-body-lg text-gray-600 mt-2">Your quick overview of all stored crops and what needs attention today.</p>
+</div>
+
+<!-- ===== SUMMARY CARDS ===== -->
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
+
+  <!-- Total Stored -->
+  <div class="summary-card bg-white rounded-2xl shadow-md border-2 border-green-200 p-6 text-center">
+    <span class="text-4xl block mb-3" aria-hidden="true">🌾</span>
+    <p class="text-display font-extrabold text-forest"><%= Number(totalStored).toLocaleString() %></p>
+    <p class="text-label font-bold text-gray-700 mt-2">Kilograms Stored</p>
+    <p class="text-sm text-gray-500 mt-1"><%= activeBatches %> active batch<%= activeBatches !== 1 ? 'es' : '' %></p>
+  </div>
+
+  <!-- Needs Sale This Week -->
+  <div class="summary-card bg-warning-bg rounded-2xl shadow-md border-2 border-yellow-400 p-6 text-center">
+    <span class="text-4xl block mb-3" aria-hidden="true">⏰</span>
+    <p class="text-display font-extrabold text-harvest-dark"><%= needsSaleThisWeek %></p>
+    <p class="text-label font-bold text-gray-700 mt-2">Batches Need Sale Soon</p>
+    <p class="text-sm text-gray-500 mt-1">Within the next 14 days</p>
+  </div>
+
+  <!-- Urgent -->
+  <div class="summary-card bg-priority-bg rounded-2xl shadow-md border-2 border-red-400 p-6 text-center">
+    <span class="text-4xl block mb-3" aria-hidden="true">⚠️</span>
+    <p class="text-display font-extrabold text-danger"><%= urgentCount %></p>
+    <p class="text-label font-bold text-gray-700 mt-2">URGENT — Sell Now!</p>
+    <p class="text-sm text-gray-500 mt-1">Less than 7 days left</p>
+  </div>
+
+  <!-- Rooms In Use -->
+  <div class="summary-card bg-white rounded-2xl shadow-md border-2 border-blue-200 p-6 text-center">
+    <span class="text-4xl block mb-3" aria-hidden="true">🏪</span>
+    <p class="text-display font-extrabold text-blue-700"><%= roomsInUse %> / <%= totalRooms %></p>
+    <p class="text-label font-bold text-gray-700 mt-2">Storage Rooms In Use</p>
+    <p class="text-sm text-gray-500 mt-1"><%= totalRooms - roomsInUse %> room<%= (totalRooms - roomsInUse) !== 1 ? 's' : '' %> available</p>
+  </div>
+
+</div>
+
+<!-- ===== TWO COLUMN: CHART + ATTENTION LIST ===== -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+  <!-- PIE CHART -->
+  <div class="bg-white rounded-2xl shadow-md border-2 border-gray-200 p-6">
+    <h2 class="text-heading font-bold text-charcoal mb-4 flex items-center gap-2">
+      <span aria-hidden="true">📈</span> Batch Status Overview
+    </h2>
+    <div class="relative" style="min-height: 320px;">
+      <canvas id="status-pie-chart" aria-label="Pie chart showing batch status distribution" role="img"></canvas>
+    </div>
+  </div>
+
+  <!-- ATTENTION BATCHES -->
+  <div class="bg-white rounded-2xl shadow-md border-2 border-gray-200 p-6">
+    <h2 class="text-heading font-bold text-charcoal mb-4 flex items-center gap-2">
+      <span aria-hidden="true">🔔</span> Needs Your Attention
+    </h2>
+
+    <% if (attentionBatches.length === 0) { %>
+      <div class="text-center py-10">
+        <span class="text-5xl block mb-4" aria-hidden="true">✅</span>
+        <p class="text-body-lg font-bold text-safe">All Clear!</p>
+        <p class="text-body text-gray-600 mt-2">No batches need immediate attention right now.</p>
+      </div>
+    <% } else { %>
+      <ul class="space-y-4 list-none p-0 m-0">
+        <% attentionBatches.forEach(function(batch) { %>
+          <li class="rounded-xl p-4 border-2 flex items-start gap-4
+                      <%= batch.status === 'Priority' ? 'bg-priority-bg border-red-300' : 'bg-warning-bg border-yellow-300' %>">
+
+            <span class="text-3xl flex-shrink-0" aria-hidden="true">
+              <%= batch.status === 'Priority' ? '🔴' : '🟡' %>
+            </span>
+
+            <div class="flex-1 min-w-0">
+              <p class="text-lg font-bold text-charcoal">
+                <%= batch.crop_name %> — <%= batch.bay_code %>
+              </p>
+              <p class="text-body text-gray-700">
+                <strong><%= batch.remaining_weight_kg %> kg</strong> remaining
+              </p>
+              <p class="text-sm font-bold mt-1
+                        <%= batch.status === 'Priority' ? 'text-danger' : 'text-harvest-dark' %>">
+                <% if (batch.days_until_expiry < 0) { %>
+                  ⚠️ EXPIRED <%= Math.abs(batch.days_until_expiry) %> day(s) ago!
+                <% } else if (batch.days_until_expiry === 0) { %>
+                  ⚠️ EXPIRES TODAY!
+                <% } else { %>
+                  <%= batch.status === 'Priority' ? '⚠️ URGENT:' : '⏰' %> <%= batch.days_until_expiry %> day(s) left
+                <% } %>
+              </p>
+            </div>
+
+            <a href="/dispatch?crop_id=<%= batch.crop_id %>"
+               class="btn-primary px-5 py-3 rounded-xl text-lg font-bold flex-shrink-0 no-underline">
+              Sell Now 🚚
+            </a>
+          </li>
+        <% }); %>
+      </ul>
+    <% } %>
+
+    <% if (spoiledCount > 0) { %>
+      <div class="mt-6 bg-red-100 border-2 border-red-400 rounded-xl p-4 text-center">
+        <p class="text-xl font-bold text-danger">🔴 <%= spoiledCount %> batch<%= spoiledCount !== 1 ? 'es' : '' %> already SPOILED</p>
+        <a href="/batches?status=Spoiled" class="text-lg text-danger underline font-semibold mt-2 inline-block">View Spoiled Batches →</a>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<!-- ===== QUICK ACTIONS ===== -->
+<div class="mt-10 bg-white rounded-2xl shadow-md border-2 border-gray-200 p-6">
+  <h2 class="text-heading font-bold text-charcoal mb-6 flex items-center gap-2">
+    <span aria-hidden="true">⚡</span> Quick Actions
+  </h2>
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <a href="/batches/new" class="btn-primary text-center text-xl py-5 px-6 rounded-xl font-bold no-underline flex items-center justify-center gap-3">
+      <span aria-hidden="true">➕</span> Register New Harvest
+    </a>
+    <a href="/dispatch" class="btn-dispatch text-center text-xl py-5 px-6 rounded-xl font-bold no-underline flex items-center justify-center gap-3">
+      <span aria-hidden="true">🚚</span> Sell / Dispatch Crops
+    </a>
+    <a href="/storage-rooms" class="btn-secondary text-center text-xl py-5 px-6 rounded-xl font-bold no-underline flex items-center justify-center gap-3">
+      <span aria-hidden="true">🏪</span> View Storage Rooms
+    </a>
+  </div>
+</div>
+
+<!-- Chart.js Script -->
+<script src="/js/dashboard-chart.js"></script>
+
+<%- include('partials/footer') %>

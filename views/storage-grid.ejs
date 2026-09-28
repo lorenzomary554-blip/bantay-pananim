@@ -1,0 +1,143 @@
+<%- include('partials/header') %>
+
+<!-- ===== PAGE HEADER ===== -->
+<div class="mb-8">
+  <h1 class="text-heading-lg font-extrabold text-charcoal flex items-center gap-3">
+    <span aria-hidden="true">🏪</span> Storage Rooms
+  </h1>
+  <p class="text-body-lg text-gray-600 mt-2">See which rooms have crops, which are empty, and which need attention.</p>
+</div>
+
+<!-- ===== LEGEND ===== -->
+<div class="bg-white rounded-2xl shadow-md border-2 border-gray-200 p-5 mb-8">
+  <h2 class="text-xl font-bold text-charcoal mb-3">📋 Status Guide:</h2>
+  <div class="flex flex-wrap gap-4 text-lg">
+    <span class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-green-100 border-2 border-green-400 font-bold text-green-800">✅ SAFE</span>
+    <span class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-yellow-100 border-2 border-yellow-400 font-bold text-yellow-800">⏰ SELL SOON</span>
+    <span class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-100 border-2 border-red-400 font-bold text-red-800">⚠️ URGENT</span>
+    <span class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 border-2 border-gray-400 font-bold text-gray-600">📭 EMPTY</span>
+    <span class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-100 border-2 border-blue-400 font-bold text-blue-800">🔧 MAINTENANCE</span>
+  </div>
+</div>
+
+<!-- ===== STORAGE ROOM GRID ===== -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+  <% bays.forEach(function(bay) { %>
+    <%
+      let cardBg, cardBorder, badgeClass, badgeText, badgeIcon;
+
+      if (bay.status === 'Maintenance') {
+        cardBg = 'bg-blue-50';
+        cardBorder = 'border-blue-400';
+        badgeClass = 'bg-blue-200 text-blue-900 border-blue-400';
+        badgeText = 'MAINTENANCE';
+        badgeIcon = '🔧';
+      } else if (bay.worstStatus === 'Empty' || bay.batches.length === 0) {
+        cardBg = 'bg-gray-50';
+        cardBorder = 'border-gray-300';
+        badgeClass = 'bg-gray-200 text-gray-700 border-gray-400';
+        badgeText = 'EMPTY';
+        badgeIcon = '📭';
+      } else if (bay.worstStatus === 'Priority') {
+        cardBg = 'bg-red-50';
+        cardBorder = 'border-red-400';
+        badgeClass = 'bg-red-200 text-red-900 border-red-500';
+        badgeText = 'URGENT — SELL NOW!';
+        badgeIcon = '⚠️';
+      } else if (bay.worstStatus === 'Warning') {
+        cardBg = 'bg-yellow-50';
+        cardBorder = 'border-yellow-400';
+        badgeClass = 'bg-yellow-200 text-yellow-900 border-yellow-500';
+        badgeText = 'SELL SOON';
+        badgeIcon = '⏰';
+      } else {
+        cardBg = 'bg-green-50';
+        cardBorder = 'border-green-300';
+        badgeClass = 'bg-green-200 text-green-900 border-green-400';
+        badgeText = 'SAFE';
+        badgeIcon = '✅';
+      }
+    %>
+
+    <div class="<%= cardBg %> rounded-2xl shadow-md border-2 <%= cardBorder %> p-6 transition-shadow hover:shadow-lg" style="border-width: 3px;">
+      <!-- Room Header -->
+      <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <h3 class="text-heading font-extrabold text-charcoal"><%= bay.bay_code %></h3>
+        <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 text-lg font-extrabold <%= badgeClass %>">
+          <span aria-hidden="true"><%= badgeIcon %></span> <%= badgeText %>
+        </span>
+      </div>
+
+      <!-- Capacity Bar -->
+      <div class="mb-4">
+        <div class="flex justify-between text-body font-semibold text-gray-700 mb-2">
+          <span>Capacity Used</span>
+          <span><%= bay.current_load_kg.toLocaleString() %> / <%= bay.capacity_kg.toLocaleString() %> kg (<%= bay.utilizationPercent %>%)</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-5 overflow-hidden" role="progressbar" aria-valuenow="<%= bay.utilizationPercent %>" aria-valuemin="0" aria-valuemax="100" aria-label="Storage room capacity">
+          <div class="h-5 rounded-full transition-all duration-500
+                      <%= bay.utilizationPercent > 90 ? 'bg-red-500' : bay.utilizationPercent > 70 ? 'bg-yellow-500' : 'bg-green-500' %>"
+               style="width: <%= bay.utilizationPercent %>%"></div>
+        </div>
+      </div>
+
+      <!-- Batch Details -->
+      <% if (bay.batches.length > 0) { %>
+        <div class="space-y-3">
+          <% bay.batches.forEach(function(batch) { %>
+            <div class="bg-white rounded-xl p-4 border border-gray-200 flex items-center justify-between gap-4 flex-wrap">
+              <div>
+                <p class="text-lg font-bold text-charcoal"><%= batch.crop_name %></p>
+                <p class="text-body text-gray-600"><%= batch.remaining_weight_kg.toLocaleString() %> kg remaining</p>
+              </div>
+              <div class="text-right">
+                <% if (batch.days_until_expiry < 0) { %>
+                  <p class="text-lg font-extrabold text-danger">⚠️ EXPIRED</p>
+                <% } else if (batch.days_until_expiry <= 7) { %>
+                  <p class="text-lg font-extrabold text-danger">⚠️ <%= batch.days_until_expiry %> day(s) left</p>
+                <% } else if (batch.days_until_expiry <= 14) { %>
+                  <p class="text-lg font-extrabold text-harvest-dark">⏰ <%= batch.days_until_expiry %> days left</p>
+                <% } else { %>
+                  <p class="text-lg font-bold text-safe">✅ <%= batch.days_until_expiry %> days left</p>
+                <% } %>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+      <% } else if (bay.status !== 'Maintenance') { %>
+        <p class="text-center text-body text-gray-500 py-4">No crops stored in this room.</p>
+      <% } else { %>
+        <p class="text-center text-body text-blue-700 py-4 font-semibold">🔧 This room is under maintenance.</p>
+      <% } %>
+
+      <!-- Bay Actions -->
+      <div class="mt-4 pt-4 border-t border-gray-200 flex flex-wrap gap-3">
+        <% if (bay.status === 'Maintenance') { %>
+          <form action="/storage-rooms/<%= bay.bay_id %>/status" method="POST" class="inline">
+            <input type="hidden" name="newStatus" value="Available">
+            <button type="submit" class="btn-primary px-5 py-3 rounded-xl text-lg font-bold">
+              ✅ Mark as Available
+            </button>
+          </form>
+        <% } else if (bay.batches.length === 0) { %>
+          <form action="/storage-rooms/<%= bay.bay_id %>/status" method="POST" class="inline">
+            <input type="hidden" name="newStatus" value="Maintenance">
+            <button type="submit" class="btn-secondary px-5 py-3 rounded-xl text-lg font-bold">
+              🔧 Set to Maintenance
+            </button>
+          </form>
+        <% } %>
+
+        <% if (bay.batches.length > 0) { %>
+          <a href="/dispatch?crop_id=<%= bay.batches[0].crop_id %>" class="btn-dispatch px-5 py-3 rounded-xl text-lg font-bold no-underline">
+            🚚 Sell Crops From Here
+          </a>
+        <% } %>
+      </div>
+    </div>
+  <% }); %>
+
+</div>
+
+<%- include('partials/footer') %>

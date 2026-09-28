@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# SQLite database (auto-generated, don't commit user data)
+bantay_pananim.db
+bantay_pananim.db-shm
+bantay_pananim.db-wal
+
+# Environment variables
+.env
+.env.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE / editor
+.vscode/
+.idea/
+*.suo
+*.user
+
+# Agent rules (local config only)
+.agents/

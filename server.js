@@ -14,7 +14,9 @@ const PORT = process.env.PORT || 3000;
 // ============================================================
 // Initialize Database
 // ============================================================
-initializeDatabase();
+// initializeDatabase is async — start server only after DB is ready
+async function startServer() {
+  await initializeDatabase();
 
 // ============================================================
 // View Engine
@@ -83,11 +85,14 @@ app.use((req, res) => {
 // ============================================================
 // Start Server
 // ============================================================
-app.listen(PORT, () => {
-  console.log(`\n🌾 ═══════════════════════════════════════════════`);
-  console.log(`   Bantay Pananim v1.0 is running!`);
-  console.log(`   Open your browser at: http://localhost:${PORT}`);
-  console.log(`🌾 ═══════════════════════════════════════════════\n`);
-});
+  app.listen(PORT, () => {
+    console.log(`\n🌾 ═══════════════════════════════════════════════`);
+    console.log(`   Bantay Pananim v1.0 is running!`);
+    console.log(`   Open your browser at: http://localhost:${PORT}`);
+    console.log(`🌾 ═══════════════════════════════════════════════\n`);
+  });
+}
+
+startServer().catch(err => { console.error('Startup error:', err); process.exit(1); });
 
 module.exports = app;

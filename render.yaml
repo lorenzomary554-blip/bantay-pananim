@@ -3,7 +3,7 @@ services:
   - type: web
     name: bantay-pananim
     runtime: node
-    buildCommand: npm install
+    buildCommand: npm install && npm rebuild better-sqlite3
     startCommand: node server.js
     plan: free
     envVars:

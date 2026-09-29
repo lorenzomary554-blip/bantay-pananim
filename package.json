@@ -18,5 +18,8 @@
     "nodemon": "^3.1.0"
   },
   "keywords": ["agriculture", "inventory", "expiry-tracker", "fifo", "grain-storage"],
-  "license": "MIT"
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  }
 }

@@ -6,7 +6,10 @@
 const Database = require('better-sqlite3');
 const path = require('path');
 
-const DB_PATH = path.join(__dirname, 'bantay_pananim.db');
+// On Render.com the persistent disk is mounted at /data
+// Locally it sits next to server.js
+const DB_DIR = process.env.NODE_ENV === 'production' ? '/data' : __dirname;
+const DB_PATH = path.join(DB_DIR, 'bantay_pananim.db');
 
 let db;
 

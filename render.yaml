@@ -1,0 +1,17 @@
+# Render.com deployment configuration for Bantay Pananim v1.0
+services:
+  - type: web
+    name: bantay-pananim
+    runtime: node
+    buildCommand: npm install
+    startCommand: node server.js
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+    disk:
+      name: bantay-pananim-data
+      mountPath: /data
+      sizeGB: 1

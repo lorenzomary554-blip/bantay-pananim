@@ -1,77 +1,73 @@
 // ============================================================
 // Bantay Pananim v1.0 — Database Layer
-// Uses 'sqlite3' package (cross-platform, works on Render.com)
+// Uses sql.js: 100% pure JavaScript SQLite (no native binaries)
+// Works on ALL platforms — local Windows, Render Linux, etc.
 // ============================================================
 
-const sqlite3 = require('sqlite3').verbose();
+const initSqlJs = require('sql.js');
 const path = require('path');
+const fs = require('fs');
 
 // On Render.com the persistent disk is mounted at /data
 // Locally it sits next to server.js
 const DB_DIR = process.env.NODE_ENV === 'production' ? '/data' : __dirname;
 const DB_PATH = path.join(DB_DIR, 'bantay_pananim.db');
 
-let db;
+let db; // sql.js in-memory DB instance
 
-function getDb() {
-  if (!db) {
-    db = new sqlite3.Database(DB_PATH, (err) => {
-      if (err) console.error('DB connection error:', err.message);
-    });
-    db.run('PRAGMA journal_mode = WAL');
-    db.run('PRAGMA foreign_keys = ON');
+// ============================================================
+// Save the in-memory DB to disk
+// ============================================================
+function saveDb() {
+  try {
+    const data = db.export();
+    fs.writeFileSync(DB_PATH, Buffer.from(data));
+  } catch (err) {
+    console.error('Failed to save DB:', err.message);
   }
-  return db;
 }
 
 // ============================================================
-// Schema Creation
+// Promise-based query helpers
 // ============================================================
-function createTables() {
-  return new Promise((resolve, reject) => {
-    const conn = getDb();
-    conn.serialize(() => {
-      conn.run(`CREATE TABLE IF NOT EXISTS crops (
-        crop_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        crop_name TEXT NOT NULL UNIQUE,
-        standard_shelf_life_days INTEGER NOT NULL,
-        max_safe_moisture_percentage REAL NOT NULL
-      )`);
+function dbAll(sql, params = []) {
+  try {
+    const stmt = db.prepare(sql);
+    stmt.bind(params);
+    const rows = [];
+    while (stmt.step()) {
+      rows.push(stmt.getAsObject());
+    }
+    stmt.free();
+    return Promise.resolve(rows);
+  } catch (err) {
+    return Promise.reject(err);
+  }
+}
 
-      conn.run(`CREATE TABLE IF NOT EXISTS storage_bays (
-        bay_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        bay_code TEXT NOT NULL UNIQUE,
-        capacity_kg REAL NOT NULL,
-        status TEXT NOT NULL DEFAULT 'Available'
-          CHECK(status IN ('Available', 'Occupied', 'Maintenance'))
-      )`);
+function dbGet(sql, params = []) {
+  try {
+    const stmt = db.prepare(sql);
+    stmt.bind(params);
+    let row = null;
+    if (stmt.step()) {
+      row = stmt.getAsObject();
+    }
+    stmt.free();
+    return Promise.resolve(row);
+  } catch (err) {
+    return Promise.reject(err);
+  }
+}
 
-      conn.run(`CREATE TABLE IF NOT EXISTS batches (
-        batch_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        crop_id INTEGER NOT NULL,
-        bay_id INTEGER NOT NULL,
-        initial_weight_kg REAL NOT NULL,
-        remaining_weight_kg REAL NOT NULL,
-        moisture_content REAL,
-        date_received TEXT NOT NULL,
-        estimated_expiry_date TEXT NOT NULL,
-        status TEXT NOT NULL DEFAULT 'Fresh'
-          CHECK(status IN ('Fresh', 'Warning', 'Priority', 'Fulfilled', 'Spoiled')),
-        FOREIGN KEY (crop_id) REFERENCES crops(crop_id),
-        FOREIGN KEY (bay_id) REFERENCES storage_bays(bay_id)
-      )`);
-
-      conn.run(`CREATE TABLE IF NOT EXISTS dispatch_logs (
-        log_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        batch_id INTEGER NOT NULL,
-        quantity_dispatched_kg REAL NOT NULL,
-        dispatch_date TEXT NOT NULL,
-        buyer_name TEXT,
-        override_reason TEXT,
-        FOREIGN KEY (batch_id) REFERENCES batches(batch_id)
-      )`, resolve);
-    });
-  });
+function dbRun(sql, params = []) {
+  try {
+    db.run(sql, params);
+    saveDb();
+    return Promise.resolve({ changes: db.getRowsModified() });
+  } catch (err) {
+    return Promise.reject(err);
+  }
 }
 
 // ============================================================
@@ -81,15 +77,10 @@ function calculateExpiryDate(dateReceived, shelfLifeDays, moistureContent, maxSa
   const moistureRatio = moistureContent / maxSafeMoisture;
   let multiplier;
 
-  if (moistureRatio <= 0.8) {
-    multiplier = 1.2;
-  } else if (moistureRatio <= 1.0) {
-    multiplier = 1.0;
-  } else if (moistureRatio <= 1.2) {
-    multiplier = 0.6;
-  } else {
-    multiplier = 0.3;
-  }
+  if (moistureRatio <= 0.8)       multiplier = 1.2;
+  else if (moistureRatio <= 1.0)  multiplier = 1.0;
+  else if (moistureRatio <= 1.2)  multiplier = 0.6;
+  else                            multiplier = 0.3;
 
   const adjustedDays = Math.floor(shelfLifeDays * multiplier);
   const received = new Date(dateReceived);
@@ -98,88 +89,99 @@ function calculateExpiryDate(dateReceived, shelfLifeDays, moistureContent, maxSa
 }
 
 // ============================================================
-// Synchronous DB helpers using sqlite3 in serialized mode
-// These wrap sqlite3 callbacks into sync-like flow via serialize
+// Schema Creation
 // ============================================================
-
-// Run a query that returns all rows
-function dbAll(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    getDb().all(sql, params, (err, rows) => {
-      if (err) reject(err);
-      else resolve(rows || []);
-    });
-  });
-}
-
-// Run a query that returns one row
-function dbGet(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    getDb().get(sql, params, (err, row) => {
-      if (err) reject(err);
-      else resolve(row);
-    });
-  });
-}
-
-// Run INSERT/UPDATE/DELETE
-function dbRun(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    getDb().run(sql, params, function (err) {
-      if (err) reject(err);
-      else resolve({ lastID: this.lastID, changes: this.changes });
-    });
-  });
+function createTables() {
+  db.run(`
+    CREATE TABLE IF NOT EXISTS crops (
+      crop_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      crop_name TEXT NOT NULL UNIQUE,
+      standard_shelf_life_days INTEGER NOT NULL,
+      max_safe_moisture_percentage REAL NOT NULL
+    )
+  `);
+  db.run(`
+    CREATE TABLE IF NOT EXISTS storage_bays (
+      bay_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      bay_code TEXT NOT NULL UNIQUE,
+      capacity_kg REAL NOT NULL,
+      status TEXT NOT NULL DEFAULT 'Available'
+        CHECK(status IN ('Available', 'Occupied', 'Maintenance'))
+    )
+  `);
+  db.run(`
+    CREATE TABLE IF NOT EXISTS batches (
+      batch_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      crop_id INTEGER NOT NULL,
+      bay_id INTEGER NOT NULL,
+      initial_weight_kg REAL NOT NULL,
+      remaining_weight_kg REAL NOT NULL,
+      moisture_content REAL,
+      date_received TEXT NOT NULL,
+      estimated_expiry_date TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'Fresh'
+        CHECK(status IN ('Fresh', 'Warning', 'Priority', 'Fulfilled', 'Spoiled')),
+      FOREIGN KEY (crop_id) REFERENCES crops(crop_id),
+      FOREIGN KEY (bay_id) REFERENCES storage_bays(bay_id)
+    )
+  `);
+  db.run(`
+    CREATE TABLE IF NOT EXISTS dispatch_logs (
+      log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+      batch_id INTEGER NOT NULL,
+      quantity_dispatched_kg REAL NOT NULL,
+      dispatch_date TEXT NOT NULL,
+      buyer_name TEXT,
+      override_reason TEXT,
+      FOREIGN KEY (batch_id) REFERENCES batches(batch_id)
+    )
+  `);
+  saveDb();
 }
 
 // ============================================================
 // Batch Status Updater
 // ============================================================
 function updateAllBatchStatuses() {
-  const conn = getDb();
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  conn.all(
-    `SELECT batch_id, estimated_expiry_date, remaining_weight_kg, status
-     FROM batches WHERE status NOT IN ('Fulfilled', 'Spoiled')`,
-    [],
-    (err, batches) => {
-      if (err || !batches) return;
-      conn.serialize(() => {
-        for (const batch of batches) {
-          const expiry = new Date(batch.estimated_expiry_date);
-          expiry.setHours(0, 0, 0, 0);
-          const daysUntilExpiry = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+    const batches = [];
+    const stmt = db.prepare(
+      `SELECT batch_id, estimated_expiry_date, remaining_weight_kg, status FROM batches WHERE status NOT IN ('Fulfilled', 'Spoiled')`
+    );
+    while (stmt.step()) batches.push(stmt.getAsObject());
+    stmt.free();
 
-          let newStatus;
-          if (batch.remaining_weight_kg <= 0) {
-            newStatus = 'Fulfilled';
-          } else if (daysUntilExpiry < 0) {
-            newStatus = 'Spoiled';
-          } else if (daysUntilExpiry <= 7) {
-            newStatus = 'Priority';
-          } else if (daysUntilExpiry <= 14) {
-            newStatus = 'Warning';
-          } else {
-            newStatus = 'Fresh';
-          }
+    for (const batch of batches) {
+      const expiry = new Date(batch.estimated_expiry_date);
+      expiry.setHours(0, 0, 0, 0);
+      const days = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
 
-          if (newStatus !== batch.status) {
-            conn.run('UPDATE batches SET status = ? WHERE batch_id = ?', [newStatus, batch.batch_id]);
-          }
-        }
-      });
+      let newStatus;
+      if (batch.remaining_weight_kg <= 0) newStatus = 'Fulfilled';
+      else if (days < 0)    newStatus = 'Spoiled';
+      else if (days <= 7)   newStatus = 'Priority';
+      else if (days <= 14)  newStatus = 'Warning';
+      else                  newStatus = 'Fresh';
+
+      if (newStatus !== batch.status) {
+        db.run('UPDATE batches SET status = ? WHERE batch_id = ?', [newStatus, batch.batch_id]);
+      }
     }
-  );
+    saveDb();
+  } catch (err) {
+    console.error('Status update error:', err.message);
+  }
 }
 
 // ============================================================
 // Seed Data
 // ============================================================
 async function seedData() {
-  const cropCount = await dbGet('SELECT COUNT(*) as count FROM crops');
-  if (cropCount && cropCount.count > 0) return;
+  const countRow = await dbGet('SELECT COUNT(*) as count FROM crops');
+  if (countRow && countRow.count > 0) return;
 
   const crops = [
     ['Rice (Bigas)', 90, 14.0],
@@ -188,12 +190,8 @@ async function seedData() {
     ['Dried Cassava (Kamoteng Kahoy)', 60, 15.0],
     ['Peanuts (Mani)', 150, 9.0],
   ];
-
-  for (const crop of crops) {
-    await dbRun(
-      'INSERT OR IGNORE INTO crops (crop_name, standard_shelf_life_days, max_safe_moisture_percentage) VALUES (?, ?, ?)',
-      crop
-    );
+  for (const c of crops) {
+    db.run('INSERT OR IGNORE INTO crops (crop_name, standard_shelf_life_days, max_safe_moisture_percentage) VALUES (?, ?, ?)', c);
   }
 
   const bays = [
@@ -206,12 +204,8 @@ async function seedData() {
     ['Room B3', 4000, 'Available'],
     ['Room B4', 4000, 'Occupied'],
   ];
-
-  for (const bay of bays) {
-    await dbRun(
-      'INSERT OR IGNORE INTO storage_bays (bay_code, capacity_kg, status) VALUES (?, ?, ?)',
-      bay
-    );
+  for (const b of bays) {
+    db.run('INSERT OR IGNORE INTO storage_bays (bay_code, capacity_kg, status) VALUES (?, ?, ?)', b);
   }
 
   function dateOffset(days) {
@@ -228,30 +222,47 @@ async function seedData() {
     [4, 8, 1500, 1200, 14.0, dateOffset(-55), calculateExpiryDate(dateOffset(-55), 60, 14.0, 15.0), 'Priority'],
     [5, 1, 800, 800, 7.5, dateOffset(-20), calculateExpiryDate(dateOffset(-20), 150, 7.5, 9.0), 'Fresh'],
   ];
-
   for (const b of batchData) {
-    await dbRun(
-      `INSERT INTO batches (crop_id, bay_id, initial_weight_kg, remaining_weight_kg, moisture_content,
-        date_received, estimated_expiry_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    db.run(
+      `INSERT INTO batches (crop_id, bay_id, initial_weight_kg, remaining_weight_kg, moisture_content, date_received, estimated_expiry_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       b
     );
   }
 
-  await dbRun(
+  db.run(
     'INSERT INTO dispatch_logs (batch_id, quantity_dispatched_kg, dispatch_date, buyer_name, override_reason) VALUES (?, ?, ?, ?, ?)',
     [1, 500, dateOffset(-10), 'Juan Dela Cruz', null]
   );
 
+  saveDb();
   updateAllBatchStatuses();
 }
 
 // ============================================================
-// Initialize
+// Initialize Database
 // ============================================================
 async function initializeDatabase() {
-  await createTables();
-  await seedData();
+  const SQL = await initSqlJs();
+
+  // Load existing DB from disk if it exists, otherwise create new
+  if (fs.existsSync(DB_PATH)) {
+    const fileBuffer = fs.readFileSync(DB_PATH);
+    db = new SQL.Database(fileBuffer);
+    console.log('✅ Loaded existing database from', DB_PATH);
+  } else {
+    db = new SQL.Database();
+    console.log('✅ Created new database at', DB_PATH);
+    createTables();
+    await seedData();
+  }
+
+  // Save DB on process exit
+  process.on('exit', saveDb);
+  process.on('SIGINT', () => { saveDb(); process.exit(0); });
+  process.on('SIGTERM', () => { saveDb(); process.exit(0); });
 }
+
+function getDb() { return db; }
 
 module.exports = {
   getDb,

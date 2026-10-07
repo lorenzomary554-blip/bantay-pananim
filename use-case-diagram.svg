@@ -1,0 +1,170 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 620" width="900" height="620" font-family="Arial, sans-serif">
+
+  <!-- Background -->
+  <rect width="900" height="620" fill="white"/>
+
+  <!-- ===== TITLE ===== -->
+  <text x="450" y="35" text-anchor="middle" font-size="20" font-weight="bold" fill="#1a1a2e">Bantay Pananim v1.0 — Use Case Diagram</text>
+  <text x="450" y="55" text-anchor="middle" font-size="13" fill="#555">Grain &amp; Produce Storage Batch Expiry Tracker</text>
+
+  <!-- ===== SYSTEM BOUNDARY BOX ===== -->
+  <rect x="195" y="75" width="510" height="510" fill="#f9f9f9" stroke="#1a1a2e" stroke-width="2.5" rx="6"/>
+  <text x="450" y="97" text-anchor="middle" font-size="13" font-style="italic" fill="#1a1a2e">«system»</text>
+  <text x="450" y="113" text-anchor="middle" font-size="15" font-weight="bold" fill="#1a1a2e">Bantay Pananim v1.0</text>
+
+  <!-- ===================================================== -->
+  <!-- USE CASE OVALS — Left Column (User-initiated)         -->
+  <!-- ===================================================== -->
+
+  <!-- UC1: View Dashboard -->
+  <ellipse cx="330" cy="165" rx="100" ry="24" fill="white" stroke="#2d6a4f" stroke-width="1.8"/>
+  <text x="330" y="170" text-anchor="middle" font-size="12" fill="#1a1a2e">View Dashboard</text>
+
+  <!-- UC2: Register New Harvest -->
+  <ellipse cx="330" cy="230" rx="100" ry="24" fill="white" stroke="#2d6a4f" stroke-width="1.8"/>
+  <text x="330" y="235" text-anchor="middle" font-size="12" fill="#1a1a2e">Register New Harvest</text>
+
+  <!-- UC3: View Storage Rooms -->
+  <ellipse cx="330" cy="295" rx="100" ry="24" fill="white" stroke="#2d6a4f" stroke-width="1.8"/>
+  <text x="330" y="300" text-anchor="middle" font-size="12" fill="#1a1a2e">View Storage Rooms</text>
+
+  <!-- UC4: Sell / Dispatch Crops -->
+  <ellipse cx="330" cy="360" rx="100" ry="24" fill="white" stroke="#2d6a4f" stroke-width="1.8"/>
+  <text x="330" y="358" text-anchor="middle" font-size="12" fill="#1a1a2e">Sell / Dispatch Crops</text>
+  <text x="330" y="372" text-anchor="middle" font-size="11" fill="#555">(FIFO)</text>
+
+  <!-- UC5: Mark Batch as Spoiled -->
+  <ellipse cx="330" cy="430" rx="100" ry="24" fill="white" stroke="#2d6a4f" stroke-width="1.8"/>
+  <text x="330" y="428" text-anchor="middle" font-size="12" fill="#1a1a2e">Mark Batch</text>
+  <text x="330" y="442" text-anchor="middle" font-size="12" fill="#1a1a2e">as Spoiled</text>
+
+  <!-- UC6: View Sale History -->
+  <ellipse cx="330" cy="505" rx="100" ry="24" fill="white" stroke="#2d6a4f" stroke-width="1.8"/>
+  <text x="330" y="510" text-anchor="middle" font-size="12" fill="#1a1a2e">View Sale History</text>
+
+  <!-- ===================================================== -->
+  <!-- USE CASE OVALS — Right Column (System/Auto)           -->
+  <!-- ===================================================== -->
+
+  <!-- UC7: Calculate Expiry Date -->
+  <ellipse cx="575" cy="165" rx="105" ry="24" fill="#fffbeb" stroke="#c77c14" stroke-width="1.8"/>
+  <text x="575" y="163" text-anchor="middle" font-size="12" fill="#1a1a2e">Calculate</text>
+  <text x="575" y="177" text-anchor="middle" font-size="12" fill="#1a1a2e">Expiry Date</text>
+
+  <!-- UC8: Update Batch Status -->
+  <ellipse cx="575" cy="240" rx="105" ry="24" fill="#fffbeb" stroke="#c77c14" stroke-width="1.8"/>
+  <text x="575" y="238" text-anchor="middle" font-size="12" fill="#1a1a2e">Auto-Update</text>
+  <text x="575" y="252" text-anchor="middle" font-size="12" fill="#1a1a2e">Batch Status</text>
+
+  <!-- UC9: Generate FIFO Recommendation -->
+  <ellipse cx="575" cy="330" rx="105" ry="24" fill="#fffbeb" stroke="#c77c14" stroke-width="1.8"/>
+  <text x="575" y="328" text-anchor="middle" font-size="12" fill="#1a1a2e">Generate FIFO</text>
+  <text x="575" y="342" text-anchor="middle" font-size="12" fill="#1a1a2e">Recommendation</text>
+
+  <!-- UC10: Send Urgency Alert -->
+  <ellipse cx="575" cy="415" rx="105" ry="24" fill="#fef2f2" stroke="#c1121f" stroke-width="1.8"/>
+  <text x="575" y="413" text-anchor="middle" font-size="12" fill="#1a1a2e">Send Urgency</text>
+  <text x="575" y="427" text-anchor="middle" font-size="12" fill="#1a1a2e">Alert</text>
+
+  <!-- UC11: Set Room Maintenance -->
+  <ellipse cx="575" cy="505" rx="105" ry="24" fill="white" stroke="#2d6a4f" stroke-width="1.8"/>
+  <text x="575" y="503" text-anchor="middle" font-size="12" fill="#1a1a2e">Set Room to</text>
+  <text x="575" y="517" text-anchor="middle" font-size="12" fill="#1a1a2e">Maintenance</text>
+
+  <!-- ===================================================== -->
+  <!-- ACTOR: Farmer / Warehouse Manager (LEFT)              -->
+  <!-- ===================================================== -->
+  <!-- Head -->
+  <circle cx="80" cy="105" r="18" fill="white" stroke="#1a1a2e" stroke-width="2"/>
+  <!-- Body -->
+  <line x1="80" y1="123" x2="80" y2="165" stroke="#1a1a2e" stroke-width="2"/>
+  <!-- Arms -->
+  <line x1="55" y1="140" x2="105" y2="140" stroke="#1a1a2e" stroke-width="2"/>
+  <!-- Legs -->
+  <line x1="80" y1="165" x2="58" y2="195" stroke="#1a1a2e" stroke-width="2"/>
+  <line x1="80" y1="165" x2="102" y2="195" stroke="#1a1a2e" stroke-width="2"/>
+  <!-- Label -->
+  <text x="80" y="215" text-anchor="middle" font-size="12" font-weight="bold" fill="#1a1a2e">Farmer /</text>
+  <text x="80" y="229" text-anchor="middle" font-size="12" font-weight="bold" fill="#1a1a2e">Warehouse</text>
+  <text x="80" y="243" text-anchor="middle" font-size="12" font-weight="bold" fill="#1a1a2e">Manager</text>
+
+  <!-- ===================================================== -->
+  <!-- ACTOR: System Auto (RIGHT)                            -->
+  <!-- ===================================================== -->
+  <!-- Head -->
+  <circle cx="820" cy="105" r="18" fill="white" stroke="#1a1a2e" stroke-width="2"/>
+  <!-- Body -->
+  <line x1="820" y1="123" x2="820" y2="165" stroke="#1a1a2e" stroke-width="2"/>
+  <!-- Arms -->
+  <line x1="795" y1="140" x2="845" y2="140" stroke="#1a1a2e" stroke-width="2"/>
+  <!-- Legs -->
+  <line x1="820" y1="165" x2="798" y2="195" stroke="#1a1a2e" stroke-width="2"/>
+  <line x1="820" y1="165" x2="842" y2="195" stroke="#1a1a2e" stroke-width="2"/>
+  <!-- Label -->
+  <text x="820" y="215" text-anchor="middle" font-size="12" font-weight="bold" fill="#1a1a2e">System</text>
+  <text x="820" y="229" text-anchor="middle" font-size="12" font-weight="bold" fill="#1a1a2e">(Automated)</text>
+
+  <!-- ===================================================== -->
+  <!-- ASSOCIATION LINES: Farmer → Use Cases                 -->
+  <!-- ===================================================== -->
+  <line x1="98" y1="135" x2="230" y2="165" stroke="#555" stroke-width="1.4"/>
+  <line x1="98" y1="145" x2="230" y2="230" stroke="#555" stroke-width="1.4"/>
+  <line x1="98" y1="155" x2="230" y2="295" stroke="#555" stroke-width="1.4"/>
+  <line x1="98" y1="160" x2="230" y2="360" stroke="#555" stroke-width="1.4"/>
+  <line x1="98" y1="165" x2="230" y2="430" stroke="#555" stroke-width="1.4"/>
+  <line x1="98" y1="170" x2="230" y2="505" stroke="#555" stroke-width="1.4"/>
+
+  <!-- ===================================================== -->
+  <!-- ASSOCIATION LINES: System → Use Cases (right)        -->
+  <!-- ===================================================== -->
+  <line x1="802" y1="135" x2="680" y2="165" stroke="#555" stroke-width="1.4"/>
+  <line x1="802" y1="145" x2="680" y2="240" stroke="#555" stroke-width="1.4"/>
+  <line x1="802" y1="155" x2="680" y2="330" stroke="#555" stroke-width="1.4"/>
+  <line x1="802" y1="162" x2="680" y2="415" stroke="#555" stroke-width="1.4"/>
+  <line x1="802" y1="170" x2="680" y2="505" stroke="#555" stroke-width="1.4"/>
+
+  <!-- ===================================================== -->
+  <!-- «include» DASHED ARROWS                              -->
+  <!-- ===================================================== -->
+
+  <!-- Sell Crops --include--> FIFO Recommendation -->
+  <line x1="430" y1="355" x2="470" y2="335" stroke="#2d6a4f" stroke-width="1.4" stroke-dasharray="6,4" marker-end="url(#arrow-green)"/>
+  <text x="452" y="340" text-anchor="middle" font-size="10" fill="#2d6a4f" font-style="italic">«include»</text>
+
+  <!-- Register Harvest --include--> Calculate Expiry -->
+  <line x1="430" y1="222" x2="470" y2="180" stroke="#2d6a4f" stroke-width="1.4" stroke-dasharray="6,4" marker-end="url(#arrow-green)"/>
+  <text x="452" y="196" text-anchor="middle" font-size="10" fill="#2d6a4f" font-style="italic">«include»</text>
+
+  <!-- Auto-Update Status --extend--> Send Urgency Alert -->
+  <line x1="575" y1="264" x2="575" y2="391" stroke="#c1121f" stroke-width="1.4" stroke-dasharray="6,4" marker-end="url(#arrow-red)"/>
+  <text x="615" y="330" text-anchor="start" font-size="10" fill="#c1121f" font-style="italic">«extend»</text>
+
+  <!-- ===================================================== -->
+  <!-- ARROWHEAD MARKERS                                     -->
+  <!-- ===================================================== -->
+  <defs>
+    <marker id="arrow-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2d6a4f"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#c1121f"/>
+    </marker>
+  </defs>
+
+  <!-- ===================================================== -->
+  <!-- LEGEND                                               -->
+  <!-- ===================================================== -->
+  <rect x="198" y="555" width="506" height="55" fill="white" stroke="#ccc" stroke-width="1" rx="4"/>
+  <text x="216" y="572" font-size="11" font-weight="bold" fill="#1a1a2e">Legend:</text>
+  <line x1="268" y1="570" x2="308" y2="570" stroke="#2d6a4f" stroke-width="1.4" stroke-dasharray="5,3"/>
+  <polygon points="308,567 318,570 308,573" fill="#2d6a4f"/>
+  <text x="322" y="573" font-size="11" fill="#1a1a2e">«include» — always performed</text>
+  <line x1="268" y1="590" x2="308" y2="590" stroke="#c1121f" stroke-width="1.4" stroke-dasharray="5,3"/>
+  <polygon points="308,587 318,590 308,593" fill="#c1121f"/>
+  <text x="322" y="593" font-size="11" fill="#1a1a2e">«extend» — conditionally triggered</text>
+  <ellipse cx="560" cy="570" rx="30" ry="10" fill="#fffbeb" stroke="#c77c14" stroke-width="1.5"/>
+  <text x="596" y="573" font-size="11" fill="#1a1a2e">= Auto/System use case</text>
+  <ellipse cx="560" cy="590" rx="30" ry="10" fill="white" stroke="#2d6a4f" stroke-width="1.5"/>
+  <text x="596" y="593" font-size="11" fill="#1a1a2e">= User use case</text>
+
+</svg>
